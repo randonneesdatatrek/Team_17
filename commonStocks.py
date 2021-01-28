@@ -26,4 +26,4 @@ common = stocks[stocks['Security Name'].str.contains('Common', case=False)]
 final = common['Symbol']
 
 #Export list to csv file
-final.to_csv("commonStocks.csv", header=False, index=False)
+final.to_csv("commonStocks.csv", index=False)
