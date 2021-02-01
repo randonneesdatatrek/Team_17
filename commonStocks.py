@@ -13,17 +13,39 @@ import pandas as pd
 target = "ftp://ftp.nasdaqtrader.com/symboldirectory/nasdaqtraded.txt"
 temp = pd.read_csv(target, sep="|")
 
-#Remove last line containing info about file creation time
-main = temp.dropna(subset=['Symbol'])
 
-#Select stocks traded on Nasdaq and NYSE only
-stocks = main[(main['Listing Exchange'] == "Q") | (main['Listing Exchange'] == "N")]
+#Remove last line containing info about file creation time
+clean = temp.dropna(subset=['Symbol'])
+
+#Export full clean list to local machine
+clean.to_csv("nasdaqtraded.txt", sep ="|", index=False)
+
+
+#Keep stocks without Test Issue
+safe = clean[clean['Test Issue'] == "N"]
+
+#Remove Warrant
+warrant = safe[~safe['Security Name'].str.contains('Warrant', case=False)]
+
+#Remove symbols with dollar sign
+dollar = warrant[~warrant['Symbol'].str.contains('$', regex=False)]
+
+#Remove symbols with period sign
+period = dollar[~dollar['Symbol'].str.contains('.', regex=False)]
 
 #Refine selection and keep common stocks only
-common = stocks[stocks['Security Name'].str.contains('Common', case=False)]
+common = period[period['Security Name'].str.contains('Common', case=False)]
 
-#Create final list of common stocks
-final = common['Symbol']
+#Select stocks traded on Nasdaq and NYSE only
+nasdaq = common[common['Listing Exchange'] == "Q"]
+nyse = common[common['Listing Exchange'] == "N"]
 
-#Export list to csv file
-final.to_csv("commonStocks.csv", index=False)
+#Create final list for both markets
+nasdaq_final = nasdaq['Symbol']
+nyse_final = nyse['Symbol']
+
+#Export list to csv file on local machine
+nasdaq_final.to_csv("commonNasdaq.csv", index=False)
+nyse_final.to_csv("commonNYSE.csv", index=False)
+
+
